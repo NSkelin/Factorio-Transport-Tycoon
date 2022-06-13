@@ -353,20 +353,28 @@ function Trades_menu:create_row(list, assembler)
 
 	-- create row buttons
 	local trade_row_flow = trade_row.add{type="flow", style="tro_trade_row_flow"}
+
 	trade_row_flow.add{
-		type="button",
-		caption="ping",
-		name="tro_ping_button",
-		tags={location=position}, 
-		tooltip={"tro.trade_menu_ping"}
-	}
-	trade_row_flow.add{type="button",
-		caption="goto",
-		name="tro_goto_button",
+		type = "sprite-button",
+		name = "tro_ping_button",
+		sprite = "utility/center",
+		style = "tool_button",
 		tags={location=position},
-		tooltip={"tro.trade_menu_goto"}
+		tooltip = {"tro.trade_menu_ping"}
 	}
-	
+
+	trade_row_flow.add{
+		type = "sprite-button",
+		name = "tro_goto_button",
+		sprite = "utility/search_black",
+		style = "tool_button",
+		tags={location=position},
+		tooltip = {"tro.trade_menu_goto"}
+
+	}
+
+	trade_row_flow.add{type="label", name="tro_trade_menu_spacer", caption="     "}
+
 	-- create sprite buttons and labels for each ingredient and product
 	if #ingredients >= 1 then
 		for i, ingredient in ipairs(ingredients) do
