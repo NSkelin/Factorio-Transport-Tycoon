@@ -125,7 +125,7 @@ function Trades_menu:update_search_text(player, search, filter)
 	local textfield = player.gui.screen["tro_trade_root_frame"]["tro_filter_bar"]["tro_trade_menu_search"]
 	local text = filter .. ":" .. search
 
-	if filter == nil then
+	if filter == nil or filter == "any" then
 		text = search
 	else
 		text = filter .. ":" .. search
