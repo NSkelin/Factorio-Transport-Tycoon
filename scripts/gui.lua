@@ -83,18 +83,18 @@ function Trades_menu:open(player)
 	-- 	}
 
 	local switch_state = "none"
-	if player_global.trades_menu.filter.trades == false then
+	if player_global.trades_menu.filter.traders == false then
 		switch_state = "right"
 	elseif player_global.trades_menu.filter.malls == false then
 		switch_state = "left"
 	end
 	filter_flow.add{
 		type="switch",
-		name="tro_switch_trades_or_malls" ,
+		name="tro_switch_traders_or_malls" ,
 		allow_none_state=true,
 		switch_state=switch_state ,
-		left_label_caption="trades only", left_label_tooltip="show only trades, hides mall, click on switch to show booth",
-		right_label_caption="malls only", right_label_tooltip="show only malls, hides trades, click on switch to show booth"
+		left_label_caption={"tro.switch_traders_only"}, left_label_tooltip={"tro.switch_traders_only_tooltip"},
+		right_label_caption={"tro.switch_malls_only"}, right_label_tooltip={"tro.switch_malls_only_tooltip"}
 	}
 
 

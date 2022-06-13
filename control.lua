@@ -411,7 +411,7 @@ script.on_event(defines.events.on_gui_switch_state_changed,
 		function(event)
 			local player = game.get_player(event.player_index)
 			local player_global = global.players[player.index]
-			if event.element.name == "tro_switch_trades_or_malls" then
+			if event.element.name == "tro_switch_traders_or_malls" then
 				player_global.trades_menu.filter.traders = true
 				player_global.trades_menu.filter.malls = true
 				if event.element.switch_state == "left" then
