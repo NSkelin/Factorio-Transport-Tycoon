@@ -421,7 +421,17 @@ script.on_event(defines.events.on_gui_switch_state_changed,
 				end
 				player_global.trades_menu:refresh_trades_list(player)
 			end
+		end
+)
 
+script.on_event(defines.events.on_gui_checked_state_changed,
+		function(event)
+			local player = game.get_player(event.player_index)
+			local player_global = global.players[player.index]
+			if event.element.name == "tro_group_trades_checkbox" then
+				player_global.trades_menu.filter.group_by_city = event.element.state
+				player_global.trades_menu:refresh_trades_list(player)
+			end
 		end
 )
 
@@ -438,10 +448,6 @@ script.on_event(defines.events.on_gui_click,
 			elseif event.element.name == "tro_goto_button" then
 				player.zoom_to_world(event.element.tags.location, 1)
 				player_global.trades_menu:minimize(player)
-
-			elseif event.element.name == "tro_group_trades_button" then
-				player_global.trades_menu.filter.group_by_city = not player_global.trades_menu.filter.group_by_city
-				player_global.trades_menu:refresh_trades_list(player)
 
 			elseif event.element.name == "tro_allow_trades_button" then
 				player_global.trades_menu.filter.traders = not player_global.trades_menu.filter.traders

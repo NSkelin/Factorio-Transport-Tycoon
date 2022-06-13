@@ -76,12 +76,14 @@ function Trades_menu:open(player)
 	filter_flow.add{type="label", name="tro_trade_menu_spacer", caption="     "}
 
 	filter_flow.add{
-		type="button",
+		type="checkbox",
 		caption="group",
-		name="tro_group_trades_button",
+		name="tro_group_trades_checkbox",
 		tooltip = {"tro.group_trades_button"},
-		style="tro_trade_group_button",
+		state = player_global.trades_menu.filter.group_by_city
 	}
+
+	filter_flow.add{type="label", name="tro_trade_menu_group_spacer", caption="     "}
 	-- filter_flow.add{
 	-- 		type="button",
 	-- 		caption="trades",
