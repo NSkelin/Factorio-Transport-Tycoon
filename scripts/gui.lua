@@ -60,24 +60,44 @@ function Trades_menu:open(player)
 		caption="back",
 		name="tro_move_back_in_search_history_button",
 		tooltip = {"tro.trade_menu_back_but"}
-	}	filter_flow.add{
+	}
+	filter_flow.add{
 		type="button",
 		caption="group",
 		name="tro_group_trades_button",
 		tooltip = {"tro.group_trades_button"},
 		style="tro_trade_group_button",
-	}	filter_flow.add{
-		type="button",
-		caption="trades",
-		name="tro_allow_trades_button",
-		tooltip = {"tro.allow_trades_button"},
-
-	}	filter_flow.add{
-		type="button",
-		caption="malls",
-		name="tro_allow_malls_button",
-		tooltip = {"tro.allow_malls_button"}
 	}
+	-- filter_flow.add{
+	-- 		type="button",
+	-- 		caption="trades",
+	-- 		name="tro_allow_trades_button",
+	-- 		tooltip = {"tro.allow_trades_button"},
+	--
+	-- 	}
+	-- filter_flow.add{
+	-- 		type="button",
+	-- 		caption="malls",
+	-- 		name="tro_allow_malls_button",
+	-- 		tooltip = {"tro.allow_malls_button"}
+	-- 	}
+
+	local switch_state = "none"
+	if player_global.trades_menu.filter.trades == false then
+		switch_state = "right"
+	elseif player_global.trades_menu.filter.malls == false then
+		switch_state = "left"
+	end
+	filter_flow.add{
+		type="switch",
+		name="tro_switch_trades_or_malls" ,
+		allow_none_state=true,
+		switch_state=switch_state ,
+		left_label_caption="trades only", left_label_tooltip="show only trades, hides mall, click on switch to show booth",
+		right_label_caption="malls only", right_label_tooltip="show only malls, hides trades, click on switch to show booth"
+	}
+
+
 	local trades_list = root_frame.add{type="scroll-pane", name="tro_trades_list", direction="vertical", style="inventory_scroll_pane"}
 
 	if #self.search_history >= 1 then
@@ -185,8 +205,8 @@ function Trades_menu:create_title_bar(root_element)
 	header.add{type="label", caption={"tro.trade_menu_title"}, style="frame_title"}
 	local filler = header.add{type="empty-widget", style="draggable_space"}
 	filler.style.height = 24
-		filler.style.horizontally_stretchable = true
-		filler.drag_target = root_element
+	filler.style.horizontally_stretchable = true
+	filler.drag_target = root_element
 	header.add{
 		type = "sprite-button",
 		name = "tro_trade_menu_header_exit_button",
