@@ -467,6 +467,8 @@ script.on_event(defines.events.on_gui_click,
 				player_global.trades_menu:update_trades_list(player, search, true, true)
 			elseif event.element.name == "tro_move_back_in_search_history_button" then
 				player_global.trades_menu:move_backward_in_search_history(player)
+			elseif event.element.name == "tro_trade_menu_clear_search_button" then
+				player_global.trades_menu:update_trades_list(player,  convert_search_text_to_search_object(""), false, true)
 			end
 		end
 )
