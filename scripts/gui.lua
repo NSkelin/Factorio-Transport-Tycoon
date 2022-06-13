@@ -199,6 +199,14 @@ end
 
 -- check an assemblers current recipe for an item. The filter decides whether to check the ingredients, products, or both.
 function Trades_menu:check_assembler_recipe_for_item(assembler, item_name, filter)
+
+	-- hide trades in unrevealed map areas, assembler needs to be visible on the map,
+	-- prevents trades in new generated chunks are in the list before the machines are visible or explored
+	local assembler_chunk_position = { math.floor(assembler.position.x / 32), math.floor(assembler.position.y / 32 )}
+	if not game.forces.player.is_chunk_charted(game.surfaces[1], assembler_chunk_position) then
+		return false
+	end
+
 	local recipe = assembler.get_recipe()
 	-- check if the recipe has the item as a product
 	if self.filter.products == false then goto ingredient end -- skip product search
