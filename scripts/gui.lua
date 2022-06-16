@@ -243,12 +243,24 @@ function Trades_menu:check_assembler_recipe_for_item(assembler, item_name, filte
 		return false
 	end
 
+	-- check if searchterm item_name is a game item name then  filter for this item  else make a "item.name contains ..." search
+	local use_exact_match = false
+	if item_name ~= nil and game.item_prototypes[item_name] ~= nil then
+		use_exact_match = true
+	end
+
 	local recipe = assembler.get_recipe()
 	-- check if the recipe has the item as a product
 	if self.filter.products == false then goto ingredient end -- skip product search
 	for i, product in ipairs(recipe.products) do
-		if string.find(product.name, item_name, 0, true) then
-			return true
+		if use_exact_match then
+			if item_name == product.name then
+				return true
+			end
+		else
+			if string.find(product.name, item_name, 0, true) then
+				return true
+			end
 		end
 	end
 
@@ -256,8 +268,14 @@ function Trades_menu:check_assembler_recipe_for_item(assembler, item_name, filte
 	-- check if the recipe has the item as an ingredient
 	if self.filter.ingredients == false then goto finish end -- skip ingredient search
 	for i, ingredient in ipairs(recipe.ingredients) do
-		if string.find(ingredient.name, item_name, 0, true) then
-			return true
+		if use_exact_match then
+			if item_name == ingredient.name then
+				return true
+			end
+		else
+			if string.find(ingredient.name, item_name, 0, true) then
+				return true
+			end
 		end
 	end
 
