@@ -53,24 +53,26 @@ function Trades_menu_view:destroy(player)
 end
 
 -- changes the GUI search box text
-function Trades_menu_view:update_search_text(player, search, filter)
+function Trades_menu_view:update_search_text(player, search)
 	local textfield = player.gui.screen["tro_trade_root_frame"]["tro_filter_bar"]["tro_trade_menu_search"]
-	local text = filter .. ":" .. search
+	local text = ""
 
-	if filter == nil then
-		text = search
-	else
-		text = filter .. ":" .. search
+	if search.item_name then
+		text = search.item_name
+	elseif search.product_name then
+		text = "products" .. ":" .. search.product_name
+	elseif search.ingredient_name then
+		text = "products" .. ":" .. search.ingredient_name
 	end
 
 	textfield.text = text
 end
 
 -- clears the old trades and adds new ones
-function Trades_menu_view:update_trades_list(assemblers)
+function Trades_menu_view:update_trades_list(assemblers, group)
 	self.trades_list.clear()
 	if assemblers then
-		self:fill_trades_list(assemblers)
+		self:add_trades_to_trades_list(assemblers, group)
 	end
 end
 
@@ -128,11 +130,25 @@ function Trades_menu_view:create_filter_options(root_element)
 	}
 end
 
-function Trades_menu_view:fill_trades_list(assemblers)
-	local root_element = self.trades_list
-	for i, assembler in ipairs(assemblers) do
-		self:create_trade_row(root_element, assembler)
+function Trades_menu_view:add_trades_to_trades_list(cities, group)
+	local parent_element
+
+	for i, city in ipairs(cities) do
+
+		-- if a user wants trades grouped by their city then keep them in a seperate flow for each city
+		if group then
+			parent_element = self.trades_list.add{type="frame", direction="vertical"}
+		else
+			parent_element = self.trades_list
+		end
+
+		-- create the trade row
+		for i, assembling_machine in ipairs(city.assembling_machines) do
+			self:create_trade_row(parent_element, assembling_machine)
+		end
 	end
+
+	
 end
 
 -- create the ui for a trade row

@@ -378,25 +378,23 @@ function update_map()
 	end 
 end --end function
 
-function convert_search_text_to_search_object(text)
-	local filter = ""
-	local searched_item = text
-	index_start, index_end = string.find(text, ":")
-
-	-- parse text into data
-	if index_end == nil then -- no filter
-		filter = "any"
+function convert_search_text_to_search_object(search_text)
+	index_start, index_end = string.find(search_text, ":")
+	if index_end == nil then
+		local item = string.gsub(search_text, " ", "-")
+		return Search:new{item_name=item}
 	else
-		filter = string.sub(text, 1, index_end - 1)
-		searched_item = string.sub(text, index_end + 1, -1)
+		filter = string.sub(search_text, 1, index_end - 1) -- text before ":"
+		local item = string.sub(search_text, index_end + 1, -1) -- text after ":"
+		item = string.gsub(search_text, " ", "-")
+		if filter == "ingredients" then
+			return Search:new{ingredient_name=item}
+		elseif filter == "products" then
+			return Search:new{product_name=item}
+		end
 	end
 
-	searched_item = string.gsub(searched_item, " ", "-")
-
-	-- turn data into search obj
-	local search1 = Search:new(filter, searched_item)
-
-	return search1
+	return Search:new{item_name=""}
 end
 
 script.on_event(defines.events.on_player_joined_game, 
@@ -436,9 +434,9 @@ script.on_event(defines.events.on_gui_click,
 			local tag = event.element.tags
 			local search = {}
 			if event.button == 4 then -- right mouse button
-				search = Search:new("ingredients", tag.item_name, tag.type)
+				search = Search:new{ingredient_name=tag.item_name}
 			elseif event.button == 2 then -- left mouse button
-				search = Search:new("products", tag.item_name)
+				search = Search:new{product_name=tag.item_name}
 			end
 			player_global.trades_menu_model:search_for_item(player, search, true, true)
 		elseif elem_tags.action == "tro_move_back_in_search_history" then

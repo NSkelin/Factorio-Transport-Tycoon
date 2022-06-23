@@ -1,13 +1,18 @@
 local Search = {
-	filter="any", -- any, product, ingredient
-	item_name="",
-	item_type="unknown"
+
 }
 
 -- create a new search table
-function Search:new(filter, item_name, item_type)
+function Search:new(object)
 	item_type = item_type or self.item_type
-	search = {filter=filter, item_name=item_name, item_type=item_type}
+	search = {}
+	search.item_name = object.item_name
+	search.product_name = object.product_name
+	search.ingredient_name = object.ingredient_name
+
+	if object.item_name == nil and object.product_name == nil and object.ingredient_name == nil then
+		search.item_name = ""
+	end
 	setmetatable(search, self)
 	self.__index = self
 
