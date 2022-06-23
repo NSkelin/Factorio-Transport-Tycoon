@@ -3,19 +3,20 @@
 ---@field searched_item string
 ---@field item_type string
 local Search = {
-	filter="any", -- any, product, ingredient
-	searched_item="",
-	item_type="unknown"
+
 }
 
----create a new search table
----@param filter string
----@param searched_item string
----@param item_type string
----@return table search
-function Search:new(filter, searched_item, item_type)
+-- create a new search table
+function Search:new(object)
 	item_type = item_type or self.item_type
-	search = {filter=filter, searched_item=searched_item, item_type=item_type}
+	search = {}
+	search.item_name = object.item_name
+	search.product_name = object.product_name
+	search.ingredient_name = object.ingredient_name
+
+	if object.item_name == nil and object.product_name == nil and object.ingredient_name == nil then
+		search.item_name = ""
+	end
 	setmetatable(search, self)
 	self.__index = self
 

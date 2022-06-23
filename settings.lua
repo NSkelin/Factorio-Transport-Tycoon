@@ -33,5 +33,13 @@ data:extend({
             setting_type = "startup",
             default_value = 1,
             order = "a",
+        },
+        {
+            type = "int-setting",
+            name = "max-trades-per-page",
+            default_value = 100,
+            maximum_value = 1000,
+            minimum_value = 20,
+            setting_type = "runtime-per-user",
         }
 })
