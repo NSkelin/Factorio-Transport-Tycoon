@@ -1,6 +1,8 @@
 Search = require("data.Search")
 Search_history = require("data.Search_history")
 Trade_menu = require("scripts.gui")
+Trades_menu_view = require("views.trades_menu_view")
+Trades_menu_model = require("model.trades_menu_model")
 City = require("scripts.city_generation")
 
 DEBUG = true -- Used for debug, users should not enable
@@ -376,32 +378,32 @@ function update_map()
 	end 
 end --end function
 
-function convert_search_text_to_search_object(text)
-	local filter = ""
-	local searched_item = text
-	index_start, index_end = string.find(text, ":")
-
-	-- parse text into data
-	if index_end == nil then -- no filter
-		filter = "any"
+function convert_search_text_to_search_object(search_text)
+	index_start, index_end = string.find(search_text, ":")
+	if index_end == nil then
+		local item = string.gsub(search_text, " ", "-")
+		return Search:new{item_name=item}
 	else
-		filter = string.sub(text, 1, index_end - 1)
-		searched_item = string.sub(text, index_end + 1, -1)
+		filter = string.sub(search_text, 1, index_end - 1) -- text before ":"
+		local item = string.sub(search_text, index_end + 1, -1) -- text after ":"
+		item = string.gsub(search_text, " ", "-")
+		if filter == "ingredients" then
+			return Search:new{ingredient_name=item}
+		elseif filter == "products" then
+			return Search:new{product_name=item}
+		end
 	end
 
-	searched_item = string.gsub(searched_item, " ", "-")
-
-	-- turn data into search obj
-	local search1 = Search:new(filter, searched_item)
-
-	return search1
+	return Search:new{item_name=""}
 end
 
 script.on_event(defines.events.on_player_joined_game, 
 	function(event)
 		local player = game.get_player(event.player_index)
+		local view = Trades_menu_view:new()
 		global.players[player.index] = {
-			trades_menu = Trade_menu:new()
+			trades_menu_view = view,
+			trades_menu_model = Trades_menu_model:new(view),
 		}
 	end
 )
@@ -413,61 +415,44 @@ script.on_event(defines.events.on_gui_click,
 		local elem_name = event.element.name
 		local elem_tags = event.element.tags
 		if elem_name == "tro_trade_menu_header_exit_button" then
-			player_global.trades_menu:close(player)
+			player_global.trades_menu_model:close_trades_menu(player)
 
 		elseif elem_name == "tro_ping_button" then
 			player.print("[gps=".. event.element.tags.location.x ..",".. event.element.tags.location.y .."]")
 
 		elseif elem_name == "tro_goto_button" then
 			player.zoom_to_world(event.element.tags.location, 1)
-			player_global.trades_menu:minimize(player)
+			player_global.trades_menu_model:minimize(player)
 
 		-- handle trades menu filter changes
 		elseif elem_tags.action == "toggle_filter" then
 			local filter = elem_tags.filter
-			player_global.trades_menu:invert_filter(filter)
-			player_global.trades_menu:refresh_trades_list(player, global.cities)
+			player_global.trades_menu_model:invert_filter(player, filter)
 
 		-- click on sprite buttons
 		elseif elem_tags.action == "tro_filter_list" then
 			local tag = event.element.tags
 			local search = {}
 			if event.button == 4 then -- right mouse button
-				player_global.trades_menu.filter.ingredients = true
-				player_global.trades_menu.filter.products = false
-				search = Search:new("ingredients", tag.item_name, tag.type)
+				search = Search:new{ingredient_name=tag.item_name}
 			elseif event.button == 2 then -- left mouse button
-				player_global.trades_menu.filter.products = true
-				player_global.trades_menu.filter.ingredients = false
-				search = Search:new("products", tag.item_name)
+				search = Search:new{product_name=tag.item_name}
 			end
-			player_global.trades_menu:update_trades_list(player, search, true, true)
-		elseif elem_name == "tro_move_back_in_search_history_button" then
-			player_global.trades_menu:move_backward_in_search_history(player)
-		
+			player_global.trades_menu_model:search_for_item(player, search, true, true)
+		elseif elem_tags.action == "tro_move_back_in_search_history" then
+			player_global.trades_menu_model:move_backward_in_search_history(player)
+
 		-- pagination buttons
 		elseif elem_tags.action == "switch_pagination_page" then
-			player_global.trades_menu:switch_page(player, event.element.tags.page_number)
+			player_global.trades_menu_model:switch_page(event.element.tags.page_number)
 		elseif elem_name == "pagination_first_set" then
-			player_global.trades_menu:switch_pagination_set(player, 1)
+			player_global.trades_menu_model:switch_pagination_set("first")
 		elseif elem_name == "pagination_previous_set" then
-			local set = player_global.trades_menu.pagination_button_set
-			if set > 1 then
-				player_global.trades_menu:switch_pagination_set(player, set - 1)
-			end
+			player_global.trades_menu_model:switch_pagination_set("previous")
 		elseif elem_name == "pagination_next_set" then
-			local max_buttons = player_global.trades_menu.max_pagination_buttons
-			local pages = #player_global.trades_menu.pagination_pages
-			local max_sets = math.ceil(pages / max_buttons)
-			local current_set = player_global.trades_menu.pagination_button_set
-			if current_set < max_sets then
-				player_global.trades_menu:switch_pagination_set(player, current_set + 1)
-			end
+			player_global.trades_menu_model:switch_pagination_set("next")
 		elseif elem_name == "pagination_last_set" then
-			local max_buttons = player_global.trades_menu.max_pagination_buttons
-			local pages = #player_global.trades_menu.pagination_pages
-			local set = math.ceil(pages / max_buttons)
-			player_global.trades_menu:switch_pagination_set(player, set)
+			player_global.trades_menu_model:switch_pagination_set("last")
 		end
 	end
 )
@@ -476,7 +461,7 @@ script.on_event(defines.events.on_lua_shortcut,
 	function(event)
 		local player = game.get_player(event.player_index)
 		if event.prototype_name == "trades" then
-			global.players[player.index].trades_menu:toggle(player)
+			global.players[player.index].trades_menu_model:toggle(player)
 		end
 	end
 )
@@ -486,7 +471,7 @@ script.on_event(defines.events.on_gui_text_changed,
 		local player = game.get_player(event.player_index)
 		local player_global = global.players[player.index]
 		local new_search = event.element.text
-		player_global.trades_menu:update_trades_list(player, convert_search_text_to_search_object(new_search), false, false)
+		player_global.trades_menu_model:search_for_item(player, convert_search_text_to_search_object(new_search), false, false)
 	end
 )
 
@@ -494,7 +479,7 @@ script.on_event("tro_move_backwards_in_search_history",
 	function(event)
 		local player = game.get_player(event.player_index)
 		local player_global = global.players[player.index]
-		player_global.trades_menu:move_backward_in_search_history(player)
+		player_global.trades_menu_model:move_backward_in_search_history(player)
 	end
 )
 
