@@ -1,12 +1,14 @@
 ---@class Search
----@field filter string
----@field searched_item string
----@field item_type string
+---@field item_name string
+---@field product_name string
+---@field ingredient_name string
 local Search = {
 
 }
 
--- create a new search table
+---Create a new search table
+---@param object table
+---@return table
 function Search:new(object)
 	item_type = item_type or self.item_type
 	search = {}
@@ -23,8 +25,7 @@ function Search:new(object)
 	return search
 end
 
----checks if a search object has the same contents as itself.
----comment
+---Checks if a search object has the same contents as itself.
 ---@param search Search
 ---@return boolean
 function Search:compare(search)
