@@ -119,8 +119,8 @@ function Trades_menu_model:move_backward_in_search_history(player)
 	self:search_for_item(player, new_search, true, false)
 end
 
----Switchs which trades are rendered based on the page selected
----@param page number
+---Updates the trades_menu_view with a new list of trades based on the pagination page selected
+---@param page integer
 function Trades_menu_model:switch_page(page)
 	if page <= #self.pagination.pages and page >= 1 then
 		self.trades_menu_view.trades_list.clear()
@@ -148,7 +148,8 @@ function Trades_menu_model:switch_pagination_set(direction)
 end
 
 ---inverts the boolean filter and refreshes the GUI to reflect the filter changes
----@param filter string
+---@param player LuaPlayer the player this effects
+---@param filter string the name of the filter
 function Trades_menu_model:invert_filter(player, filter)
 	self.categories[filter] = not self.categories[filter]
 
@@ -299,16 +300,25 @@ end
 
 ---Get entities that make up the city.
 ---@param city City the city the entities are coming from
----@param filter boolean which groups of entities to get
+---@param entity_types city_entity_types which types of entities to get
 ---@return table[] entities an array of entities from the city
 function get_city_entities(city, entity_types)
+	---@class city_entity_types
+	---@field traders boolean
+	---@field malls boolean
+	---@field other boolean
+
 	local entities = {}
+
+	---Adds each entity from an array into entities array
+	---@param entities_list table[]
 	function add_entities(entities_list)
 		for i, entity in ipairs(entities_list) do
 			table.insert(entities, entity)
 		end
 	end
 
+	-- Add specified entity types to entities array
 	if entity_types.traders then
 		add_entities(city.buildings.traders)
 	end
