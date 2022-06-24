@@ -1,6 +1,12 @@
 Trades_menu_view = require("views.trades_menu_view")
 Search_history = require("data.Search_history")
 
+---@class Trades_menu_model
+---@field trades_menu_view Trades_menu_view
+---@field active boolean
+---@field Search_history Search_history
+---@field categories table
+---@field pagination table
 local Trades_menu_model = {
     trades_menu_view = Trades_menu_view:new(),
     active = false,
@@ -19,6 +25,9 @@ local Trades_menu_model = {
 ----------------------------------------------------------------------
 -- public functions
 
+---Creates a new instance of Trades_menu_model
+---@param view Trades_menu_view
+---@return table Trades_menu_model
 function Trades_menu_model:new(view)
 	local trades_menu_model = {
         trades_menu_view = view,
@@ -40,13 +49,15 @@ function Trades_menu_model:new(view)
 	return trades_menu_model
 end
 
--- re-sets the metatable of an instance
-function Trades_menu_model:reset_metatable(trades_menu_model_instance)
-	setmetatable(trades_menu_model_instance, self)
+---re-sets the metatable of an instance
+---@param instance table an instance of Trades_menu_model
+function Trades_menu_model:reset_metatable(instance)
+	setmetatable(instance, self)
 	self.__index = self
 end
 
--- opens players trade menu if closed; closes players trade menu if open
+---opens players trade menu if closed; closes players trade menu if open
+---@param player LuaPlayer
 function Trades_menu_model:toggle(player)
 	if self.active == false then
 		self:open_trades_menu(player)
@@ -55,11 +66,13 @@ function Trades_menu_model:toggle(player)
 	end
 end
 
--- open the trades menu
+---Opens the trade_menu_view
+---@param player LuaPlayer
 function Trades_menu_model:open_trades_menu(player)
 	player.set_shortcut_toggled("trades", true)
 	self.trades_menu_view:create(player)
 
+	-- if the player has a search history goto the last search.
 	if #self.search_history >= 1 then
 		local search = self.search_history[1]
 		self:search_for_item(player, search, true, false)
@@ -75,7 +88,11 @@ function Trades_menu_model:open_trades_menu(player)
 	self.active = true
 end
 
--- searchs each city for entities with the item in the recipe
+---Searchs all cities for Search and updates the view with the results
+---@param player LuaPlayer the player
+---@param search Search search object
+---@param update_search_bar boolean whether to update the search bar or not
+---@param add_to_search_history boolean whether to update the search history or not
 function Trades_menu_model:search_for_item(player, search, update_search_bar, add_to_search_history)
 	-- create data
 	self:create_view_data(player, search)
@@ -93,20 +110,24 @@ function Trades_menu_model:search_for_item(player, search, update_search_bar, ad
 	end
 end
 
--- closes gui and resets search history
+---Closes trades_menu_view
+---@param player LuaPlayer
 function Trades_menu_model:close_trades_menu(player)
 	player.set_shortcut_toggled("trades", false)
 	self.trades_menu_view:destroy(player)
 	self.active = false
 end
 
--- closes gui without reseting search history
+---Closes trades_menu_view without reseting search history
+---@param player LuaPlayer
 function Trades_menu_model:minimize(player)
 	player.set_shortcut_toggled("trades", not self.active)
 	self.trades_menu_view:destroy(player)
 	self.active = false
 end
 
+---Removes the most recent search and updates the trades_menu_view with either the next search history or a empty search
+---@param player LuaPlayer
 function Trades_menu_model:move_backward_in_search_history(player)
 	self.search_history:remove_last_added_term()
 
@@ -128,6 +149,8 @@ function Trades_menu_model:switch_page(page)
 	end
 end
 
+---Updates the trades_menu_view pagination buttons with a new set. ex 1, 2, 3 -> 4, 5, 6
+---@param direction "first"|"last"|"next"|"previous"
 function Trades_menu_model:switch_pagination_set(direction)
 	local current_set = self.pagination.button_set
 	local new_set = 0
@@ -164,8 +187,10 @@ end
 ----------------------------------------------------------------------
 -- private functions
 
--- searches each city on the map for any entities matching the models filters and then
--- creates a table of data thats parsable for the trades_menu_view
+---Searches each city on the map for any entities matching the models filters and then
+---creates a table of data thats parsable for the trades_menu_view
+---@param player LuaPlayer
+---@param filter? Search
 function Trades_menu_model:create_view_data(player, filter)
 	local cities_entities = {}
 	for i, city in ipairs(global.cities) do
@@ -184,7 +209,10 @@ function Trades_menu_model:create_view_data(player, filter)
 	self.pagination.pages = self:split_entities_into_groups(cities_entities, max_group_size)
 end
 
--- group assemblers into pages and pages into groups
+---Group assemblers into pages and pages into groups
+---@param entities table[]
+---@param max_group_size integer
+---@return table[]
 function Trades_menu_model:split_entities_into_groups(entities, max_group_size)
 	local pages = {}
 	local page = {}
@@ -229,6 +257,8 @@ function Trades_menu_model:split_entities_into_groups(entities, max_group_size)
 	return pages
 end
 
+---Updates trade_menu_view with a new set of pagination buttons. ex) set(1, 2, 3)  set(4, 5, 6)
+---@param set integer
 function Trades_menu_model:create_pagination_button_set(set)
 	local last_possible_set =  math.ceil(#self.pagination.pages / self.pagination.max_buttons_per_set)
 
@@ -250,10 +280,13 @@ function Trades_menu_model:create_pagination_button_set(set)
 	self.pagination.button_set = set
 end
 
--- return each assembling machine that has the item in its recipe ingredients and / or products
+---Return each assembling machine that has the item in its recipe ingredients and / or products
+---@param entities table[]
+---@param search Search
+---@return table[]
 function filter_entities_by_recipe(entities, search)
 	local filtered_entities = {}
-	
+
 	for i, assembler in ipairs(entities) do
 		local recipe = assembler.get_recipe()
 		if recipe_contains(recipe, search) then
@@ -264,7 +297,10 @@ function filter_entities_by_recipe(entities, search)
 	return filtered_entities
 end
 
--- check if a recipe has an item in ingredients and / or products   
+---Check if a recipe has an item in ingredients and / or products
+---@param recipe LuaRecipe
+---@param search Search
+---@return boolean
 function recipe_contains(recipe, search)
 	function search_recipe(search_string, list)
 		for i, item in ipairs(list) do
