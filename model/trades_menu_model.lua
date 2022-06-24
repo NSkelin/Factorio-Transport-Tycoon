@@ -97,6 +97,7 @@ end
 function Trades_menu_model:close_trades_menu(player)
 	player.set_shortcut_toggled("trades", false)
 	self.trades_menu_view:destroy(player)
+	self.search_history:reset()
 	self.active = false
 end
 
@@ -110,7 +111,7 @@ end
 function Trades_menu_model:move_backward_in_search_history(player)
 	self.search_history:remove_last_added_term()
 
-	local new_search = Search:new("any", "")
+	local new_search = Search:new("any")
 
 	if #self.search_history >= 1 then
 		new_search = self.search_history[1]
